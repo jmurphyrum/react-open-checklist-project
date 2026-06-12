@@ -60,7 +60,7 @@ app.get("/api/sets/:set_id", async (c) => {
   if (!set) return c.json({ error: "Set not found" }, 404);
 
   const { results: cards } = await c.env.DB.prepare(
-    "SELECT * FROM cards WHERE set_id = ? ORDER BY CAST(number AS REAL), number",
+    "SELECT * FROM cards WHERE set_id = ? ORDER BY CASE WHEN number GLOB '[0-9]*' THEN 0 ELSE 1 END, CAST(number AS REAL), number",
   )
     .bind(setId)
     .all();
@@ -140,7 +140,7 @@ app.get("/api/cards", async (c) => {
     params.push(`%${search}%`, `%${search}%`, `%${search}%`);
   }
 
-  sql += " ORDER BY CAST(number AS REAL), number LIMIT ? OFFSET ?";
+  sql += " ORDER BY CASE WHEN number GLOB '[0-9]*' THEN 0 ELSE 1 END, CAST(number AS REAL), number LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
 
   const { results } = await c.env.DB.prepare(sql).bind(...params).all();
