@@ -247,6 +247,7 @@ p { text-wrap: pretty; }
 .card-detail-layout { display: grid; grid-template-columns: 18rem 1fr; gap: var(--sp-10); align-items: start; }
 .card-image-wrap { position: sticky; top: calc(3.25rem + var(--sp-8)); }
 .card-image { width: 100%; border-radius: var(--r-md); border: 1px solid var(--border); display: block; }
+.card-image-caption { font-size: var(--text-xs); color: var(--ink-muted); text-align: center; margin-top: var(--sp-2); }
 .card-placeholder {
   width: 100%; aspect-ratio: 2.5 / 3.5;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-md);

@@ -14,20 +14,33 @@ interface CardData {
   card_name?: string;
   set_id: string;
   set_name?: string;
+  set_image_url?: string;
   genre: string;
   rookie_card: boolean;
   autograph: boolean;
   relic: boolean;
+  serial_numbered: boolean;
   parallel?: string;
   print_run?: number;
+  subset?: string;
+  variation?: string;
   manufacturer?: string;
   season?: string;
   subjects: Subject[];
   sports?: string[];
   category?: string[];
   image_url?: string;
-  external_links?: Record<string, string>;
+  external_links?: { name: string; url: string }[];
   metadata?: Record<string, unknown>;
+}
+
+function isPlaceholder(url?: string | null): boolean {
+  if (!url) return true;
+  try {
+    return new URL(url).hostname === "example.com";
+  } catch {
+    return true;
+  }
 }
 
 function AttrRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -46,31 +59,56 @@ export default function CardDetail() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  const [imgSrc, setImgSrc] = useState<string | null>(null);
+  const [isBoxFallback, setIsBoxFallback] = useState(false);
+
   useEffect(() => {
     setLoading(true);
     setNotFound(false);
+    setData(null);
+    setImgSrc(null);
+    setIsBoxFallback(false);
     fetch("/api/cards/" + uuid)
       .then((r) => {
         if (r.status === 404) { setNotFound(true); setLoading(false); return null; }
         return r.json();
       })
-      .then((d) => { if (d) { setData(d); setLoading(false); } })
+      .then((d: CardData | null) => {
+        if (!d) return;
+        setData(d);
+        setLoading(false);
+        const cardImg = isPlaceholder(d.image_url) ? null : d.image_url!;
+        const setImg = isPlaceholder(d.set_image_url) ? null : d.set_image_url!;
+        setImgSrc(cardImg ?? setImg ?? null);
+        setIsBoxFallback(!cardImg && !!setImg);
+      })
       .catch(() => { setNotFound(true); setLoading(false); });
   }, [uuid]);
+
+  function handleImgError() {
+    if (!data) return;
+    const setImg = isPlaceholder(data.set_image_url) ? null : data.set_image_url!;
+    if (setImg && imgSrc !== setImg) {
+      setImgSrc(setImg);
+      setIsBoxFallback(true);
+    } else {
+      setImgSrc(null);
+    }
+  }
 
   if (loading) {
     return (
       <div>
         <div className="breadcrumb">
-          <Link to="/">Browse</Link>
+          <Link to="/">Sets</Link>
           <span className="breadcrumb-sep">/</span>
           <span className="skeleton" style={{ width: "8rem", height: "0.8rem", display: "inline-block" }} />
           <span className="breadcrumb-sep">/</span>
           <span className="skeleton" style={{ width: "5rem", height: "0.8rem", display: "inline-block" }} />
         </div>
         <div className="card-detail-layout">
-          <div className="card-detail-image-col">
-            <div className="skeleton card-detail-image-placeholder" />
+          <div className="card-image-wrap">
+            <div className="card-placeholder skeleton" />
           </div>
           <div className="card-detail-info-col">
             <div className="skeleton" style={{ width: "3rem", height: "1.125rem", borderRadius: "0.25rem" }} />
@@ -86,7 +124,7 @@ export default function CardDetail() {
     return (
       <div>
         <div className="breadcrumb">
-          <Link to="/">Browse</Link>
+          <Link to="/">Sets</Link>
         </div>
         <div className="empty-state" style={{ marginTop: "var(--sp-8)" }}>
           <p>Card not found.</p>
@@ -100,7 +138,7 @@ export default function CardDetail() {
   return (
     <div>
       <div className="breadcrumb">
-        <Link to="/">Browse</Link>
+        <Link to="/">Sets</Link>
         <span className="breadcrumb-sep">/</span>
         {data.set_id && (
           <>
@@ -112,16 +150,31 @@ export default function CardDetail() {
       </div>
 
       <div className="card-detail-layout">
-        {data.image_url && (
-          <div className="card-detail-image-col">
-            <img
-              src={data.image_url}
-              alt={displayName}
-              className="card-detail-image"
-              loading="lazy"
-            />
-          </div>
-        )}
+        <div className="card-image-wrap">
+          {imgSrc ? (
+            <>
+              <img
+                src={imgSrc}
+                alt={isBoxFallback ? (data.set_name || data.set_id) + " box" : displayName}
+                className="card-image"
+                loading="lazy"
+                onError={handleImgError}
+              />
+              {isBoxFallback && (
+                <p className="card-image-caption">Set box — no card image yet</p>
+              )}
+            </>
+          ) : (
+            <div className="card-placeholder">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <rect x="2" y="2" width="28" height="28" rx="4" stroke="currentColor" strokeWidth="1.5" />
+                <circle cx="11" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M3 24l7-7 5 5 4-4 10 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <span>No image available</span>
+            </div>
+          )}
+        </div>
 
         <div className="card-detail-info-col">
           <div style={{ display: "flex", gap: "var(--sp-2)", alignItems: "center", flexWrap: "wrap", marginBottom: "var(--sp-3)" }}>
@@ -142,6 +195,7 @@ export default function CardDetail() {
             <AttrRow label="Genre"        value={data.genre} />
             <AttrRow label="Manufacturer" value={data.manufacturer} />
             <AttrRow label="Season"       value={data.season} />
+            <AttrRow label="Subset"       value={data.subset} />
             <AttrRow label="Parallel"     value={data.parallel} />
             <AttrRow label="Print run"    value={data.print_run ? "#/" + data.print_run : null} />
             {data.sports && data.sports.length > 0 && (
@@ -176,14 +230,14 @@ export default function CardDetail() {
             </section>
           )}
 
-          {data.external_links && Object.keys(data.external_links).length > 0 && (
+          {data.external_links && data.external_links.length > 0 && (
             <section className="card-detail-links">
               <h2 className="card-detail-subjects-title">External links</h2>
               <ul className="subjects-list">
-                {Object.entries(data.external_links).map(([key, url]) => (
-                  <li key={key} className="subject-item">
+                {data.external_links.map(({ name, url }) => (
+                  <li key={name} className="subject-item">
                     <a href={url} target="_blank" rel="noopener noreferrer" className="external-link">
-                      {key}
+                      {name}
                     </a>
                   </li>
                 ))}

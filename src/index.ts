@@ -148,9 +148,22 @@ app.get("/api/cards", async (c) => {
 });
 
 app.get("/api/cards/:uuid", async (c) => {
-  const card = await c.env.DB.prepare("SELECT * FROM cards WHERE uuid = ?").bind(c.req.param("uuid")).first();
-  if (!card) return c.json({ error: "Card not found" }, 404);
-  return c.json(hydrateCard(card));
+  const row = await c.env.DB.prepare(
+    `SELECT c.*, s.name as set_name, s.image_url as set_image_url,
+            s.manufacturer, s.season, s.category as set_category
+     FROM cards c
+     LEFT JOIN sets s ON c.set_id = s.set_id
+     WHERE c.uuid = ?`,
+  ).bind(c.req.param("uuid")).first();
+  if (!row) return c.json({ error: "Card not found" }, 404);
+  return c.json({
+    ...hydrateCard(row),
+    set_name: row.set_name ?? null,
+    set_image_url: row.set_image_url ?? null,
+    manufacturer: row.manufacturer ?? null,
+    season: row.season ?? null,
+    category: safeJsonParse(asNullableString(row.set_category), []),
+  });
 });
 
 app.post("/api/cards", async (c) => {
