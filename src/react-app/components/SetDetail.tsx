@@ -90,11 +90,11 @@ function genreBadgeClass(genre: string): string {
   return "badge genre-badge--unknown";
 }
 
-function cardSubsetDisplay(card: Card): string {
+function cardSubsetDisplay(card: Card, includeParallel: boolean): string {
   const parts: string[] = [];
   if (card.subset) parts.push(card.subset);
   if (card.variation && card.variation !== card.subset) parts.push(card.variation);
-  if (card.parallel) parts.push(card.parallel);
+  if (includeParallel && card.parallel) parts.push(card.parallel);
   return parts.join(" · ");
 }
 
@@ -547,7 +547,7 @@ export default function SetDetail() {
                     "2fr",
                     showTeamFilter ? "4.5rem" : "",
                     "3fr",
-                    showParallelInfo ? "5rem" : "",
+                    showParallelInfo ? "1fr" : "",
                     "4.5rem",
                     "8rem",
                   ]
@@ -582,7 +582,7 @@ export default function SetDetail() {
                   const primaryName =
                     card.subjects?.map((s) => s.name).join(", ") || "—";
                   const primaryTeam = card.subjects?.[0]?.team ?? "";
-                  const subsetDisplay = cardSubsetDisplay(card);
+                  const subsetDisplay = cardSubsetDisplay(card, !showParallelInfo);
                   const printRunDisplay =
                     card.serial_numbered && card.print_run
                       ? "#/" + card.print_run
