@@ -482,6 +482,7 @@ p { text-wrap: pretty; }
   height: 44px; padding-top: 0; padding-bottom: 0;
   grid-template-columns: 4.5rem 1fr 9rem 7rem;
   border-bottom: 1px solid var(--border-subtle);
+  overflow: hidden;
 }
 .card-table-scroll .card-table-row:last-child { border-bottom: 1px solid var(--border-subtle); }
 .card-table-scroll .card-cell-chips { justify-content: flex-end; }
@@ -529,7 +530,7 @@ p { text-wrap: pretty; }
 /* Default fallback: # name subset printrun attrs (no team, no parallel)               */
 .card-table-head,
 .card-table-scroll .card-table-row {
-  grid-template-columns: var(--cl-grid, 7rem 2fr 3fr 4.5rem auto);
+  grid-template-columns: var(--cl-grid, 7rem 2fr 3fr 4.5rem 8rem);
 }
 /* === New cell types === */
 .card-cell-team {
@@ -538,7 +539,7 @@ p { text-wrap: pretty; }
 }
 .card-cell-subset {
   font-size: var(--text-sm); color: var(--ink-muted);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
 }
 .card-cell-printrun {
   font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 600;

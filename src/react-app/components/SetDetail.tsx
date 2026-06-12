@@ -549,22 +549,13 @@ export default function SetDetail() {
                     "3fr",
                     showParallelInfo ? "5rem" : "",
                     "4.5rem",
-                    "auto",
+                    "8rem",
                   ]
                     .filter(Boolean)
                     .join(" "),
                 } as React.CSSProperties
               }
             >
-              <div className="card-table-head">
-                <span className="card-th">#</span>
-                <span className="card-th">Player</span>
-                {showTeamFilter && <span className="card-th">Team</span>}
-                <span className="card-th">Subset</span>
-                {showParallelInfo && <span className="card-th">Parallel</span>}
-                <span className="card-th">Print Run</span>
-                <span className="card-th card-th--right">Attrs</span>
-              </div>
               <div
                 ref={containerRef}
                 className={
@@ -575,6 +566,15 @@ export default function SetDetail() {
                 role="list"
                 aria-label={data.name + " cards"}
               >
+                <div className="card-table-head">
+                  <span className="card-th">#</span>
+                  <span className="card-th">Player</span>
+                  {showTeamFilter && <span className="card-th">Team</span>}
+                  <span className="card-th">Subset</span>
+                  {showParallelInfo && <span className="card-th">Parallel</span>}
+                  <span className="card-th">Print Run</span>
+                  <span className="card-th card-th--right">Attrs</span>
+                </div>
                 {topSpacer > 0 && (
                   <div style={{ height: topSpacer }} aria-hidden="true" />
                 )}
