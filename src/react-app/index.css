@@ -139,16 +139,17 @@ p { text-wrap: pretty; }
   margin-bottom: var(--sp-4);
 }
 .top-players-rail {
-  display: flex; gap: var(--sp-3);
-  overflow-x: auto; padding-bottom: var(--sp-1);
-  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
-  -webkit-overflow-scrolling: touch;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--sp-3);
 }
-.top-players-rail::-webkit-scrollbar { height: 3px; }
-.top-players-rail::-webkit-scrollbar-track { background: transparent; }
-.top-players-rail::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+@media (max-width: 767px) {
+  .top-players-rail { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 479px) {
+  .top-players-rail { grid-template-columns: repeat(3, 1fr); }
+}
 .top-player-card {
-  flex-shrink: 0; width: 7.5rem;
   display: flex; flex-direction: column; align-items: center; gap: var(--sp-2);
   padding: var(--sp-4) var(--sp-2) var(--sp-3);
   background: var(--surface); border: 1px solid var(--border);

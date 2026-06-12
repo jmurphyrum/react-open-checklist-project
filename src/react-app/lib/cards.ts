@@ -59,7 +59,7 @@ const MLB_PLAYER_IDS: Record<string, number> = {
   "Pete Alonso": 624413, "Corey Seager": 608369, "Paul Goldschmidt": 502671,
   "Freddie Freeman": 518692, "José Ramírez": 608070, "Trea Turner": 607208,
   "Bo Bichette": 666182, "Vladimir Guerrero Jr.": 665489, "Bryce Harper": 547180,
-  "Nolan Arenado": 571448, "Elly De La Cruz": 682998, "Gunnar Henderson": 683002,
+  "Nolan Arenado": 571448, "Elly De La Cruz": 682829, "Gunnar Henderson": 683002,
   "Bobby Witt Jr.": 677951, "Spencer Strider": 675911, "Paul Skenes": 694973,
   "Jackson Chourio": 694192, "Wyatt Langford": 695243, "Kyle Tucker": 663647,
   "Jeremy Peña": 665926, "Adley Rutschman": 668939, "Wander Franco": 665833,
@@ -69,8 +69,12 @@ const MLB_PLAYER_IDS: Record<string, number> = {
   "Kyle Schwarber": 656941, "Matt Olson": 621566, "Austin Riley": 663586,
   "José Altuve": 514888, "Alex Bregman": 608071, "Giancarlo Stanton": 519317,
   "Gleyber Torres": 650402, "George Springer": 543807, "Xander Bogaerts": 519048,
-  "Carlos Correa": 621043, "Marcus Semien": 543760, "Marcus Freeman": 518692,
-  "Francisco Alvarez": 682629, "Royce Lewis": 668009, "Jordan Walker": 694192,
+  "Carlos Correa": 621043, "Marcus Semien": 543760,
+  "Francisco Alvarez": 682629, "Royce Lewis": 668009, "Jordan Walker": 691023,
+  // Top collected prospects
+  "Nick Kurtz": 701762, "Dylan Crews": 686611, "James Wood": 695578,
+  "Roman Anthony": 701350, "Bubba Chandler": 696149, "Jacob Wilson": 805779,
+  "Jacob Misiorowski": 694819, "Bryce Eldridge": 805811,
   "Corbin Carroll": 682998, "Seiya Suzuki": 673548, "Ian Happ": 664023,
   // Pitchers
   "Gerrit Cole": 543037, "Max Scherzer": 453286, "Clayton Kershaw": 477132,
