@@ -46,6 +46,7 @@ export default function PlayerBrowser() {
         <div className="set-list" aria-busy="true">
           {Array.from({ length: 10 }).map((_, i) => (
             <div key={i} className="set-row skeleton-row">
+              <div className="skeleton" style={{ width: "2rem", height: "2rem", borderRadius: "50%", flexShrink: 0 }} />
               <div className="set-row-body">
                 <span className="skeleton" style={{ width: (40 + (i % 4) * 10) + "%", height: "0.9rem" }} />
               </div>
@@ -72,6 +73,9 @@ export default function PlayerBrowser() {
               className="set-row"
               role="listitem"
             >
+              <div className="player-avatar" aria-hidden="true">
+                {player.name.charAt(0)}
+              </div>
               <div className="set-row-body">
                 <span className="set-name">{player.name}</span>
               </div>
