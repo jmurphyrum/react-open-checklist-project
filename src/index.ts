@@ -238,13 +238,15 @@ async function validateAgainstSchema(env: Bindings, data: unknown, type: "card" 
   return { valid, errors: validate.errors || [], schema_version: schemaVersion };
 }
 
-function hydrateSet(row: any) {
+type DbRow = Record<string, unknown>;
+
+function hydrateSet(row: DbRow) {
   return {
     ...row,
-    category: safeJsonParse(row.category, []),
-    sports: safeJsonParse(row.sports, null),
-    years: safeJsonParse(row.years, null),
-    metadata: safeJsonParse(row.metadata, null),
+    category: safeJsonParse(asNullableString(row.category), []),
+    sports: safeJsonParse(asNullableString(row.sports), null),
+    years: safeJsonParse(asNullableString(row.years), null),
+    metadata: safeJsonParse(asNullableString(row.metadata), null),
     parallel: !!row.parallel,
     insert: !!row.insert_set,
     autograph: !!row.autograph,
@@ -252,13 +254,13 @@ function hydrateSet(row: any) {
   };
 }
 
-function hydrateCard(row: any) {
+function hydrateCard(row: DbRow) {
   return {
     ...row,
-    subjects: safeJsonParse(row.subjects, []),
-    sports: safeJsonParse(row.sports, null),
-    external_links: safeJsonParse(row.external_links, null),
-    metadata: safeJsonParse(row.metadata, null),
+    subjects: safeJsonParse(asNullableString(row.subjects), []),
+    sports: safeJsonParse(asNullableString(row.sports), null),
+    external_links: safeJsonParse(asNullableString(row.external_links), null),
+    metadata: safeJsonParse(asNullableString(row.metadata), null),
     serial_numbered: !!row.serial_numbered,
     autograph: !!row.autograph,
     relic: !!row.relic,
@@ -273,6 +275,10 @@ function safeJsonParse(str: string | null, fallback: unknown) {
   } catch {
     return fallback;
   }
+}
+
+function asNullableString(value: unknown) {
+  return typeof value === "string" ? value : null;
 }
 
 function getErrorMessage(error: unknown) {

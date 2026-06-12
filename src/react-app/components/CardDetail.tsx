@@ -1,120 +1,195 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
+interface Subject {
+  name: string;
+  team?: string;
+  role?: string;
+  sport?: string;
+}
+
 interface CardData {
   uuid: string;
   number: string;
-  genre: string;
-  sport?: string;
-  set_id: string;
   card_name?: string;
-  description?: string;
-  subjects: { name: string; role?: string; team?: string }[];
-  parallel?: string;
-  print_run?: number;
-  serial_numbered: boolean;
+  set_id: string;
+  set_name?: string;
+  genre: string;
+  rookie_card: boolean;
   autograph: boolean;
   relic: boolean;
-  rookie_card: boolean;
-  release_date?: string;
+  parallel?: string;
+  print_run?: number;
+  manufacturer?: string;
+  season?: string;
+  subjects: Subject[];
+  sports?: string[];
+  category?: string[];
   image_url?: string;
+  external_links?: Record<string, string>;
   metadata?: Record<string, unknown>;
+}
+
+function AttrRow({ label, value }: { label: string; value: React.ReactNode }) {
+  if (value === null || value === undefined || value === "") return null;
+  return (
+    <>
+      <dt className="attr-label">{label}</dt>
+      <dd className="attr-value">{value}</dd>
+    </>
+  );
 }
 
 export default function CardDetail() {
   const { uuid } = useParams();
-  const [card, setCard] = useState<CardData | null>(null);
+  const [data, setData] = useState<CardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/cards/${uuid}`)
-      .then((response) => response.json())
-      .then(setCard);
+    setLoading(true);
+    setNotFound(false);
+    fetch("/api/cards/" + uuid)
+      .then((r) => {
+        if (r.status === 404) { setNotFound(true); setLoading(false); return null; }
+        return r.json();
+      })
+      .then((d) => { if (d) { setData(d); setLoading(false); } })
+      .catch(() => { setNotFound(true); setLoading(false); });
   }, [uuid]);
 
-  if (!card) return <div>Loading card...</div>;
+  if (loading) {
+    return (
+      <div>
+        <div className="breadcrumb">
+          <Link to="/">Browse</Link>
+          <span className="breadcrumb-sep">/</span>
+          <span className="skeleton" style={{ width: "8rem", height: "0.8rem", display: "inline-block" }} />
+          <span className="breadcrumb-sep">/</span>
+          <span className="skeleton" style={{ width: "5rem", height: "0.8rem", display: "inline-block" }} />
+        </div>
+        <div className="card-detail-layout">
+          <div className="card-detail-image-col">
+            <div className="skeleton card-detail-image-placeholder" />
+          </div>
+          <div className="card-detail-info-col">
+            <div className="skeleton" style={{ width: "3rem", height: "1.125rem", borderRadius: "0.25rem" }} />
+            <div className="skeleton" style={{ width: "70%", height: "1.5rem", marginTop: "0.75rem" }} />
+            <div className="skeleton" style={{ width: "3rem", height: "0.8rem", marginTop: "0.5rem" }} />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound || !data) {
+    return (
+      <div>
+        <div className="breadcrumb">
+          <Link to="/">Browse</Link>
+        </div>
+        <div className="empty-state" style={{ marginTop: "var(--sp-8)" }}>
+          <p>Card not found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const displayName = data.card_name || data.subjects?.map((s) => s.name).join(", ") || "Untitled";
 
   return (
     <div>
-      <Link to={`/sets/${card.set_id}`} style={{ color: "#6b7280", textDecoration: "none", fontSize: "0.875rem" }}>
-        Back to set
-      </Link>
-      <div style={{ display: "flex", gap: "2rem", marginTop: "1.5rem", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: "300px" }}>
-          {card.image_url ? (
+      <div className="breadcrumb">
+        <Link to="/">Browse</Link>
+        <span className="breadcrumb-sep">/</span>
+        {data.set_id && (
+          <>
+            <Link to={"/sets/" + data.set_id}>{data.set_name || data.set_id}</Link>
+            <span className="breadcrumb-sep">/</span>
+          </>
+        )}
+        <span>#{data.number}</span>
+      </div>
+
+      <div className="card-detail-layout">
+        {data.image_url && (
+          <div className="card-detail-image-col">
             <img
-              src={card.image_url}
-              alt={card.card_name || `Card ${card.number}`}
-              style={{ width: "100%", maxWidth: "400px", borderRadius: "0.5rem", border: "1px solid #e5e7eb" }}
+              src={data.image_url}
+              alt={displayName}
+              className="card-detail-image"
+              loading="lazy"
             />
-          ) : (
-            <div
-              style={{
-                width: "100%",
-                maxWidth: "400px",
-                aspectRatio: "2.5/3.5",
-                background: "#f3f4f6",
-                borderRadius: "0.5rem",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#9ca3af",
-              }}
-            >
-              No Image
-            </div>
+          </div>
+        )}
+
+        <div className="card-detail-info-col">
+          <div style={{ display: "flex", gap: "var(--sp-2)", alignItems: "center", flexWrap: "wrap", marginBottom: "var(--sp-3)" }}>
+            {data.rookie_card && <span className="attr-chip attr-chip--rc">RC</span>}
+            {data.autograph   && <span className="attr-chip attr-chip--auto">Auto</span>}
+            {data.relic       && <span className="attr-chip attr-chip--relic">Relic</span>}
+          </div>
+
+          <h1 className="card-detail-title">{displayName}</h1>
+          <p className="card-detail-number">#{data.number}</p>
+
+          <dl className="attr-table">
+            <AttrRow label="Set" value={
+              data.set_id
+                ? <Link to={"/sets/" + data.set_id}>{data.set_name || data.set_id}</Link>
+                : null
+            } />
+            <AttrRow label="Genre"        value={data.genre} />
+            <AttrRow label="Manufacturer" value={data.manufacturer} />
+            <AttrRow label="Season"       value={data.season} />
+            <AttrRow label="Parallel"     value={data.parallel} />
+            <AttrRow label="Print run"    value={data.print_run ? "#/" + data.print_run : null} />
+            {data.sports && data.sports.length > 0 && (
+              <AttrRow label="Sport" value={data.sports.join(", ")} />
+            )}
+            {data.category && data.category.length > 0 && (
+              <AttrRow label="Category" value={
+                <span style={{ display: "flex", gap: "var(--sp-1)", flexWrap: "wrap" }}>
+                  {data.category.map((c) => <span key={c} className="attr-chip">{c}</span>)}
+                </span>
+              } />
+            )}
+          </dl>
+
+          {data.subjects && data.subjects.length > 0 && (
+            <section className="card-detail-subjects">
+              <h2 className="card-detail-subjects-title">
+                {data.subjects.length === 1 ? "Subject" : "Subjects"}
+              </h2>
+              <ul className="subjects-list">
+                {data.subjects.map((s, i) => (
+                  <li key={i} className="subject-item">
+                    <span className="subject-name">{s.name}</span>
+                    {(s.team || s.role || s.sport) && (
+                      <span className="subject-meta">
+                        {[s.role, s.team, s.sport].filter(Boolean).join(" · ")}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
-        </div>
-        <div style={{ flex: 2, minWidth: "300px" }}>
-          <h1>{card.card_name || `Card #${card.number}`}</h1>
-          <div style={{ color: "#4b5563", marginTop: "0.5rem" }}>{card.description}</div>
 
-          <div style={{ marginTop: "1.5rem", display: "grid", gap: "0.75rem" }}>
-            <div>
-              <strong>Set:</strong> {card.set_id}
-            </div>
-            <div>
-              <strong>Number:</strong> {card.number}
-            </div>
-            <div>
-              <strong>Genre:</strong> {card.genre}
-            </div>
-            {card.sport && (
-              <div>
-                <strong>Sport:</strong> {card.sport}
-              </div>
-            )}
-            {card.parallel && (
-              <div>
-                <strong>Parallel:</strong> {card.parallel}
-              </div>
-            )}
-            {card.print_run && (
-              <div>
-                <strong>Print Run:</strong> {card.print_run}
-              </div>
-            )}
-            {card.release_date && (
-              <div>
-                <strong>Release:</strong> {card.release_date}
-              </div>
-            )}
-          </div>
-
-          <h3 style={{ marginTop: "1.5rem" }}>Subjects</h3>
-          {card.subjects?.map((subject, index) => (
-            <div key={`${subject.name}-${index}`} style={{ padding: "0.75rem", background: "#f9fafb", borderRadius: "0.375rem", marginTop: "0.5rem" }}>
-              <div style={{ fontWeight: 600 }}>{subject.name}</div>
-              {subject.role && <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>{subject.role}</div>}
-              {subject.team && <div style={{ fontSize: "0.875rem", color: "#6b7280" }}>{subject.team}</div>}
-            </div>
-          ))}
-
-          <div style={{ marginTop: "1.5rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-            {card.rookie_card && <span style={{ background: "#dcfce7", color: "#166534", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.875rem" }}>Rookie Card</span>}
-            {card.autograph && <span style={{ background: "#dbeafe", color: "#1e40af", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.875rem" }}>Autograph</span>}
-            {card.relic && <span style={{ background: "#f3e8ff", color: "#6b21a8", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.875rem" }}>Relic</span>}
-            {card.serial_numbered && <span style={{ background: "#fef3c7", color: "#92400e", padding: "0.25rem 0.75rem", borderRadius: "9999px", fontSize: "0.875rem" }}>Serial Numbered</span>}
-          </div>
+          {data.external_links && Object.keys(data.external_links).length > 0 && (
+            <section className="card-detail-links">
+              <h2 className="card-detail-subjects-title">External links</h2>
+              <ul className="subjects-list">
+                {Object.entries(data.external_links).map(([key, url]) => (
+                  <li key={key} className="subject-item">
+                    <a href={url} target="_blank" rel="noopener noreferrer" className="external-link">
+                      {key}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </div>
     </div>

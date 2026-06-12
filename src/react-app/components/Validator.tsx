@@ -1,106 +1,141 @@
 import { useState } from "react";
 
-type SchemaType = "card" | "set";
+const TYPES = [
+  { value: "card", label: "Card" },
+  { value: "set",  label: "Set"  },
+] as const;
 
-interface ValidationError {
-  instancePath?: string;
-  message?: string;
-}
+type ValidatorType = "card" | "set";
 
 interface ValidationResult {
   valid: boolean;
-  error?: string;
-  errors?: ValidationError[];
-  schema_version?: string;
+  errors?: { instancePath?: string; message?: string; params?: Record<string, unknown> }[];
 }
 
 export default function Validator() {
-  const [input, setInput] = useState("");
-  const [type, setType] = useState<SchemaType>("card");
-  const [result, setResult] = useState<ValidationResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [type, setType]           = useState<ValidatorType>("card");
+  const [json, setJson]           = useState("");
+  const [result, setResult]       = useState<ValidationResult | null>(null);
+  const [loading, setLoading]     = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   async function validate() {
     setLoading(true);
-    let data: unknown;
+    setResult(null);
+    setFetchError(null);
     try {
-      data = JSON.parse(input);
+      const r = await fetch("/api/validate?type=" + type, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: json,
+      });
+      const data = await r.json();
+      setResult(data);
     } catch {
-      setResult({ valid: false, error: "Invalid JSON" });
+      setFetchError("Could not reach the validation API.");
+    } finally {
       setLoading(false);
-      return;
     }
-
-    const response = await fetch(`/api/validate?type=${type}`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    setResult(await response.json());
-    setLoading(false);
   }
 
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+      e.preventDefault();
+      if (json.trim()) validate();
+    }
+  }
+
+  const isEmpty = json.trim() === "";
+
   return (
-    <div>
-      <h1>Schema Validator</h1>
-      <div style={{ marginBottom: "1rem" }}>
-        <select value={type} onChange={(event) => setType(event.target.value as SchemaType)} style={{ padding: "0.5rem", marginRight: "0.5rem" }}>
-          <option value="card">Card Schema v0.1</option>
-          <option value="set">Set Schema v0.2</option>
-        </select>
+    <div className="validator-layout">
+      <div className="validator-header">
+        <h1 className="validator-title">Validator</h1>
+        <p className="validator-desc">
+          Paste a card or set JSON record to check it against the live R2-backed schema.
+        </p>
       </div>
-      <textarea
-        value={input}
-        onChange={(event) => setInput(event.target.value)}
-        placeholder={`Paste JSON here...\n\nExample:\n{\n  "uuid": "11111111-1111-1111-1111-111111111111",\n  "number": "1",\n  "genre": "Sports",\n  "set_id": "2023-topps-series-1",\n  "subjects": [{"name": "Aaron Judge"}]\n}`}
-        style={{
-          width: "100%",
-          height: "300px",
-          fontFamily: "monospace",
-          fontSize: "0.875rem",
-          padding: "0.75rem",
-          borderRadius: "0.375rem",
-          border: "1px solid #d1d5db",
-          boxSizing: "border-box",
-        }}
-      />
-      <button
-        onClick={validate}
-        disabled={loading}
-        style={{
-          marginTop: "0.75rem",
-          padding: "0.5rem 1.5rem",
-          background: "#ea580c",
-          color: "#fff",
-          border: "none",
-          borderRadius: "0.375rem",
-          cursor: "pointer",
-        }}
-      >
-        {loading ? "Validating..." : "Validate"}
-      </button>
+
+      <div className="validator-type-selector" role="group" aria-label="Schema type">
+        {TYPES.map((t) => (
+          <button
+            key={t.value}
+            type="button"
+            className={"validator-type-btn" + (type === t.value ? " active" : "")}
+            onClick={() => { setType(t.value); setResult(null); setFetchError(null); }}
+            aria-pressed={type === t.value}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="validator-editor">
+        <label htmlFor="validator-json" className="validator-editor-label">
+          JSON — <span className="validator-schema-hint">{type} schema v{type === "card" ? "0.1" : "0.2"}</span>
+        </label>
+        <textarea
+          id="validator-json"
+          className="validator-textarea"
+          value={json}
+          onChange={(e) => { setJson(e.target.value); setResult(null); setFetchError(null); }}
+          onKeyDown={handleKeyDown}
+          placeholder={"Paste your " + type + " JSON here..."}
+          spellCheck={false}
+          rows={16}
+          aria-label={"JSON input for " + type + " validation"}
+        />
+      </div>
+
+      <div className="validator-actions">
+        <button
+          type="button"
+          className="validator-btn"
+          onClick={validate}
+          disabled={isEmpty || loading}
+          aria-busy={loading}
+        >
+          {loading ? "Validating…" : "Validate"}
+        </button>
+        <span className="validator-hint">or Cmd+Enter</span>
+      </div>
+
+      {fetchError && (
+        <div className="validator-result validator-result--error" role="alert">
+          <p className="validator-result-summary">{fetchError}</p>
+        </div>
+      )}
 
       {result && (
         <div
-          style={{
-            marginTop: "1.5rem",
-            padding: "1rem",
-            borderRadius: "0.375rem",
-            background: result.valid ? "#dcfce7" : "#fee2e2",
-            border: `1px solid ${result.valid ? "#86efac" : "#fecaca"}`,
-          }}
+          className={"validator-result " + (result.valid ? "validator-result--valid" : "validator-result--invalid")}
+          role="status"
+          aria-live="polite"
         >
-          <div style={{ fontWeight: 600, color: result.valid ? "#166534" : "#991b1b" }}>{result.valid ? "Valid" : "Invalid"}</div>
-          {result.error && <div style={{ fontSize: "0.875rem", color: "#7f1d1d", marginTop: "0.25rem" }}>{result.error}</div>}
-          {result.schema_version && <div style={{ fontSize: "0.875rem", color: "#4b5563", marginTop: "0.25rem" }}>Schema: v{result.schema_version}</div>}
-          {result.errors && result.errors.length > 0 && (
-            <ul style={{ marginTop: "0.75rem", fontSize: "0.875rem", color: "#7f1d1d" }}>
-              {result.errors.map((error, index) => (
-                <li key={`${error.instancePath || "root"}-${index}`}>
-                  {error.instancePath || "root"}: {error.message}
-                </li>
-              ))}
-            </ul>
+          {result.valid ? (
+            <p className="validator-result-summary">
+              <span className="validator-status-icon" aria-hidden="true">✓</span>
+              Valid {type} record
+            </p>
+          ) : (
+            <>
+              <p className="validator-result-summary">
+                <span className="validator-status-icon" aria-hidden="true">✗</span>
+                {result.errors?.length ?? 0} validation {result.errors?.length === 1 ? "error" : "errors"}
+              </p>
+              {result.errors && result.errors.length > 0 && (
+                <ul className="validator-error-list" aria-label="Validation errors">
+                  {result.errors.map((err, i) => (
+                    <li key={i} className="validator-error-item">
+                      {err.instancePath && (
+                        <span className="validator-error-path">{err.instancePath}</span>
+                      )}
+                      <span className="validator-error-msg">{err.message ?? "Unknown error"}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
           )}
         </div>
       )}

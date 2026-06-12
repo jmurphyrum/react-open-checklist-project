@@ -33,13 +33,18 @@
 		"typescript": "5.9.3",
 		"typescript-eslint": "8.48.0",
 		"vite": "^7.0.0",
-		"wrangler": "4.88.0"
+		"wrangler": "4.88.0",
+		"yaml": "^2.9.0"
 	},
 	"private": true,
 	"scripts": {
 		"build": "tsc -b && vite build",
 		"cf-typegen": "wrangler types",
 		"check": "tsc && vite build && wrangler deploy --dry-run",
+		"data:import:remote": "npm run data:write-sql && wrangler d1 execute open-checklist-db --remote --file .wrangler/open-checklist-seed.sql",
+		"data:summary": "node tools/import-yaml-to-d1.mjs --command summary",
+		"data:validate": "node tools/import-yaml-to-d1.mjs --command validate",
+		"data:write-sql": "node tools/import-yaml-to-d1.mjs --command write-sql --out .wrangler/open-checklist-seed.sql",
 		"deploy": "wrangler deploy",
 		"dev": "vite",
 		"lint": "eslint .",
