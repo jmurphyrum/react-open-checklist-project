@@ -14,6 +14,7 @@ series: "2026 Topps Chrome Black"
 rookie_card: false
 autograph: true
 relic: false
-serial_numbered: false
+serial_numbered: true
+print_run: 99
 release_date: "2026-04-29"
 image_url: "https://example.com/cards/2026-topps-chrome-black/super-futures-autographs-SFA-OC.jpg"

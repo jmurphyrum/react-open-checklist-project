@@ -11,9 +11,10 @@ subset: "Ivory Autographs"
 card_name: "Joey Votto - Ivory Autographs"
 description: "Autographed Ivory Autographs card featuring Joey Votto."
 series: "2026 Topps Chrome Black"
+print_run: 50
 rookie_card: false
 autograph: true
 relic: false
-serial_numbered: false
+serial_numbered: true
 release_date: "2026-04-29"
 image_url: "https://example.com/cards/2026-topps-chrome-black/ivory-autographs-IVA-JV.jpg"
