@@ -543,7 +543,7 @@ export default function SetDetail() {
               style={
                 {
                   "--cl-grid": [
-                    "3.5rem",
+                    "7rem",
                     "2fr",
                     showTeamFilter ? "4.5rem" : "",
                     "3fr",
