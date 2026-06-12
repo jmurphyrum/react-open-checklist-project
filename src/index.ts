@@ -216,13 +216,15 @@ app.post("/api/validate", async (c) => {
 });
 
 app.get("/api/players", async (c) => {
-  const { search, limit = "500", offset = "0" } = c.req.query();
+  const { search, limit = "500", offset = "0", orderBy } = c.req.query();
   let sql = `SELECT json_extract(s.value, '$.name') as name, COUNT(DISTINCT c.uuid) as card_count
     FROM cards c, json_each(c.subjects) s
     WHERE json_extract(s.value, '$.name') IS NOT NULL AND json_extract(s.value, '$.name') != ''`;
   const params: (string | number)[] = [];
   if (search) { sql += " AND json_extract(s.value, '$.name') LIKE ?"; params.push(`%${search}%`); }
-  sql += " GROUP BY name ORDER BY name LIMIT ? OFFSET ?";
+  sql += orderBy === "cards"
+    ? " GROUP BY name ORDER BY card_count DESC LIMIT ? OFFSET ?"
+    : " GROUP BY name ORDER BY name LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
   const { results } = await c.env.DB.prepare(sql).bind(...params).all();
   return c.json({ players: results || [], limit: parseInt(limit), offset: parseInt(offset) });

@@ -1,17 +1,42 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { playerImageUrl } from "../lib/cards";
 
 interface Player {
   name: string;
   card_count: number;
 }
 
+function TopPlayerPhoto({ name }: { name: string }) {
+  const [failed, setFailed] = useState(false);
+  const url = playerImageUrl(name);
+  if (!url || failed) {
+    return <div className="top-player-avatar">{name.charAt(0)}</div>;
+  }
+  return (
+    <img
+      src={url}
+      alt={name}
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export default function PlayerBrowser() {
+  const [topPlayers, setTopPlayers] = useState<Player[]>([]);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [players, setPlayers] = useState<Player[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/players?limit=10&orderBy=cards")
+      .then((r) => r.json())
+      .then((data) => setTopPlayers(data.players || []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => setSearch(searchInput), 280);
@@ -31,6 +56,27 @@ export default function PlayerBrowser() {
 
   return (
     <div className="set-browser">
+      {topPlayers.length > 0 && (
+        <section className="top-players" aria-label="Top players by card count">
+          <h2 className="top-players-heading">Most Collected</h2>
+          <div className="top-players-rail">
+            {topPlayers.map((p) => (
+              <Link
+                key={p.name}
+                to={"/players/" + encodeURIComponent(p.name)}
+                className="top-player-card"
+              >
+                <div className="top-player-photo-wrap">
+                  <TopPlayerPhoto name={p.name} />
+                </div>
+                <span className="top-player-name">{p.name}</span>
+                <span className="top-player-count">{p.card_count.toLocaleString()} cards</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
       <div className="filter-bar">
         <input
           type="search"
