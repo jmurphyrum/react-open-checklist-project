@@ -1,9 +1,11 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "react-open-checklist-project",
-	"main": "./src/worker/index.ts",
+	"main": "./src/index.ts",
 	"compatibility_date": "2025-10-08",
-	"compatibility_flags": ["nodejs_compat"],
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
 	"observability": {
 		"enabled": true
 	},
@@ -11,5 +13,24 @@
 	"assets": {
 		"directory": "./dist/client",
 		"not_found_handling": "single-page-application"
-	}
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "open-checklist-db",
+			"database_id": "94a32434-f9b3-4f47-b7ef-04f9b226c49f"
+		}
+	],
+	"r2_buckets": [
+		{
+			"bucket_name": "open-checklist-data",
+			"binding": "DATA_BUCKET"
+		}
+	],
+	"kv_namespaces": [
+		{
+			"binding": "SCHEMA_CACHE",
+			"id": "391f9e2fe0014ac4a657fe44160df056"
+		}
+	]
 }

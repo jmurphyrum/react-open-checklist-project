@@ -1,0 +1,32 @@
+{
+  "$schema_version": "0.2",
+  "description": "Set object schema for the Open Checklist Project",
+  "title": "Set",
+  "type": "object",
+  "required": ["uuid", "set_id", "name", "genre", "category"],
+  "properties": {
+    "uuid": { "type": "string", "format": "uuid" },
+    "set_id": { "type": "string" },
+    "name": { "type": "string" },
+    "genre": { "type": "string", "enum": ["Sports", "TCG", "Non-Sport"] },
+    "category": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "sports": { "type": "array", "items": { "type": "string", "enum": ["Baseball", "Basketball", "Football", "Hockey", "Soccer", "Golf", "Boxing", "Wrestling", "Tennis", "Racing", "MMA", "Olympics", "Cricket", "Lacrosse", "Pickleball", "Bowling"] } },
+    "season": { "type": "string" },
+    "years": { "type": "array", "items": { "type": "integer", "minimum": 1800, "maximum": 2030 } },
+    "parallel": { "type": "boolean" },
+    "insert": { "type": "boolean" },
+    "autograph": { "type": "boolean" },
+    "relic": { "type": "boolean" },
+    "base_set": { "type": "string", "format": "uuid" },
+    "series": { "type": "string" },
+    "series_number": { "type": "integer", "minimum": 1 },
+    "release_date": { "type": "string", "format": "date" },
+    "manufacturer": { "type": "string" },
+    "card_count": { "type": "integer", "minimum": 1 },
+    "print_run": { "type": "integer", "minimum": 0 },
+    "subset": { "type": "string" },
+    "description": { "type": "string" },
+    "image_url": { "type": "string", "format": "uri" },
+    "metadata": { "type": "object", "additionalProperties": true }
+  }
+}
