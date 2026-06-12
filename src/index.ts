@@ -202,6 +202,56 @@ app.post("/api/validate", async (c) => {
   return c.json(result);
 });
 
+app.get("/api/players", async (c) => {
+  const { search, limit = "500", offset = "0" } = c.req.query();
+  let sql = `SELECT json_extract(s.value, '$.name') as name, COUNT(DISTINCT c.uuid) as card_count
+    FROM cards c, json_each(c.subjects) s
+    WHERE json_extract(s.value, '$.name') IS NOT NULL AND json_extract(s.value, '$.name') != ''`;
+  const params: (string | number)[] = [];
+  if (search) { sql += " AND json_extract(s.value, '$.name') LIKE ?"; params.push(`%${search}%`); }
+  sql += " GROUP BY name ORDER BY name LIMIT ? OFFSET ?";
+  params.push(parseInt(limit), parseInt(offset));
+  const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+  return c.json({ players: results || [], limit: parseInt(limit), offset: parseInt(offset) });
+});
+
+app.get("/api/players/:name", async (c) => {
+  const name = c.req.param("name");
+  const { results } = await c.env.DB.prepare(
+    `SELECT c.*, st.name as set_name FROM cards c
+     JOIN sets st ON c.set_id = st.set_id
+     WHERE EXISTS (SELECT 1 FROM json_each(c.subjects) s WHERE json_extract(s.value, '$.name') = ?)
+     ORDER BY st.release_date DESC, CASE WHEN c.number GLOB '[0-9]*' THEN 0 ELSE 1 END, CAST(c.number AS REAL), c.number`,
+  ).bind(name).all();
+  if (!results || results.length === 0) return c.json({ error: "Player not found" }, 404);
+  return c.json({ name, cards: results.map((r) => ({ ...hydrateCard(r), set_name: r.set_name })) });
+});
+
+app.get("/api/teams", async (c) => {
+  const { search, limit = "200", offset = "0" } = c.req.query();
+  let sql = `SELECT json_extract(s.value, '$.team') as team, COUNT(DISTINCT c.uuid) as card_count
+    FROM cards c, json_each(c.subjects) s
+    WHERE json_extract(s.value, '$.team') IS NOT NULL AND json_extract(s.value, '$.team') != ''`;
+  const params: (string | number)[] = [];
+  if (search) { sql += " AND json_extract(s.value, '$.team') LIKE ?"; params.push(`%${search}%`); }
+  sql += " GROUP BY team ORDER BY team LIMIT ? OFFSET ?";
+  params.push(parseInt(limit), parseInt(offset));
+  const { results } = await c.env.DB.prepare(sql).bind(...params).all();
+  return c.json({ teams: results || [], limit: parseInt(limit), offset: parseInt(offset) });
+});
+
+app.get("/api/teams/:name", async (c) => {
+  const team = c.req.param("name");
+  const { results } = await c.env.DB.prepare(
+    `SELECT c.*, st.name as set_name FROM cards c
+     JOIN sets st ON c.set_id = st.set_id
+     WHERE EXISTS (SELECT 1 FROM json_each(c.subjects) s WHERE json_extract(s.value, '$.team') = ?)
+     ORDER BY st.release_date DESC, CASE WHEN c.number GLOB '[0-9]*' THEN 0 ELSE 1 END, CAST(c.number AS REAL), c.number`,
+  ).bind(team).all();
+  if (!results || results.length === 0) return c.json({ error: "Team not found" }, 404);
+  return c.json({ team, cards: results.map((r) => ({ ...hydrateCard(r), set_name: r.set_name })) });
+});
+
 app.get("/api/download/:key{.+}", async (c) => {
   const key = c.req.param("key");
   const obj = await c.env.DATA_BUCKET.get(key);

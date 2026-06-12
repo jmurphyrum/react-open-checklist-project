@@ -1,7 +1,11 @@
 import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
 import CardDetail from "./components/CardDetail";
+import PlayerBrowser from "./components/PlayerBrowser";
+import PlayerDetail from "./components/PlayerDetail";
 import SetBrowser from "./components/SetBrowser";
 import SetDetail from "./components/SetDetail";
+import TeamBrowser from "./components/TeamBrowser";
+import TeamDetail from "./components/TeamDetail";
 import Validator from "./components/Validator";
 
 function CheckIcon() {
@@ -24,19 +28,10 @@ export default function App() {
               Open Checklist
             </NavLink>
             <nav className="nav-links" aria-label="Main navigation">
-              <NavLink
-                to="/"
-                end
-                className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
-              >
-                Browse
-              </NavLink>
-              <NavLink
-                to="/validate"
-                className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
-              >
-                Validator
-              </NavLink>
+              <NavLink to="/" end className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Sets</NavLink>
+              <NavLink to="/players" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Players</NavLink>
+              <NavLink to="/teams" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Teams</NavLink>
+              <NavLink to="/validate" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Validator</NavLink>
             </nav>
           </div>
         </header>
@@ -44,6 +39,10 @@ export default function App() {
           <Routes>
             <Route path="/" element={<SetBrowser />} />
             <Route path="/sets/:set_id" element={<SetDetail />} />
+            <Route path="/players" element={<PlayerBrowser />} />
+            <Route path="/players/:name" element={<PlayerDetail />} />
+            <Route path="/teams" element={<TeamBrowser />} />
+            <Route path="/teams/:name" element={<TeamDetail />} />
             <Route path="/cards/:uuid" element={<CardDetail />} />
             <Route path="/validate" element={<Validator />} />
           </Routes>
