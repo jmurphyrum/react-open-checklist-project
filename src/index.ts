@@ -241,12 +241,14 @@ app.get("/api/players/:name", async (c) => {
 });
 
 app.get("/api/teams", async (c) => {
-  const { search, limit = "200", offset = "0" } = c.req.query();
+  const { search, genre, sport, limit = "200", offset = "0" } = c.req.query();
   let sql = `SELECT json_extract(s.value, '$.team') as team, COUNT(DISTINCT c.uuid) as card_count
     FROM cards c, json_each(c.subjects) s
     WHERE json_extract(s.value, '$.team') IS NOT NULL AND json_extract(s.value, '$.team') != ''`;
   const params: (string | number)[] = [];
   if (search) { sql += " AND json_extract(s.value, '$.team') LIKE ?"; params.push(`%${search}%`); }
+  if (genre) { sql += " AND c.genre = ?"; params.push(genre); }
+  if (sport) { sql += " AND (c.sport = ? OR EXISTS (SELECT 1 FROM json_each(c.sports) WHERE value = ?))"; params.push(sport, sport); }
   sql += " GROUP BY team ORDER BY team LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
   const { results } = await c.env.DB.prepare(sql).bind(...params).all();

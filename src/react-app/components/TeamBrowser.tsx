@@ -1,13 +1,47 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { teamAbbr } from "../lib/cards";
+import { teamAbbr, teamLogoUrl } from "../lib/cards";
 
 interface Team {
   team: string;
   card_count: number;
 }
 
+const GENRES = [
+  { value: "", label: "All" },
+  { value: "Sports", label: "Sports" },
+  { value: "TCG", label: "TCG" },
+  { value: "Non-Sport", label: "Non-Sport" },
+];
+
+const SPORTS = [
+  { value: "", label: "All" },
+  { value: "Baseball", label: "Baseball" },
+  { value: "Football", label: "Football" },
+  { value: "Basketball", label: "Basketball" },
+  { value: "Hockey", label: "Hockey" },
+];
+
+function TeamLogoImg({ team }: { team: string }) {
+  const [failed, setFailed] = useState(false);
+  const url = teamLogoUrl(team);
+  if (!url || failed) {
+    return <span className="team-logo-abbr">{teamAbbr(team)}</span>;
+  }
+  return (
+    <img
+      src={url}
+      alt={team}
+      className="team-logo-img"
+      loading="lazy"
+      onError={() => setFailed(true)}
+    />
+  );
+}
+
 export default function TeamBrowser() {
+  const [genre, setGenre] = useState("");
+  const [sport, setSport] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [teams, setTeams] = useState<Team[]>([]);
@@ -24,15 +58,39 @@ export default function TeamBrowser() {
     setError(false);
     const params = new URLSearchParams({ limit: "200" });
     if (search) params.set("search", search);
+    if (genre) params.set("genre", genre);
+    if (sport) params.set("sport", sport);
     fetch("/api/teams?" + params.toString())
       .then((r) => r.json())
       .then((data) => { setTeams(data.teams || []); setLoading(false); })
       .catch(() => { setError(true); setLoading(false); });
-  }, [search]);
+  }, [search, genre, sport]);
 
   return (
     <div className="set-browser">
       <div className="filter-bar">
+        <div className="genre-pills" role="group" aria-label="Genre">
+          {GENRES.map((g) => (
+            <button
+              key={g.value}
+              className={"genre-pill" + (genre === g.value ? " active" : "")}
+              onClick={() => setGenre(g.value)}
+            >
+              {g.label}
+            </button>
+          ))}
+        </div>
+        <div className="genre-pills" role="group" aria-label="Sport">
+          {SPORTS.map((s) => (
+            <button
+              key={s.value}
+              className={"genre-pill" + (sport === s.value ? " active" : "")}
+              onClick={() => setSport(s.value)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
         <input
           type="search"
           className="search-input"
@@ -44,13 +102,11 @@ export default function TeamBrowser() {
       </div>
 
       {loading && (
-        <div className="set-list" aria-busy="true">
-          {Array.from({ length: 10 }).map((_, i) => (
-            <div key={i} className="set-row skeleton-row">
-              <div className="set-row-body">
-                <span className="skeleton" style={{ width: (40 + (i % 4) * 10) + "%", height: "0.9rem" }} />
-              </div>
-              <span className="skeleton" style={{ width: "3.25rem", height: "0.75rem" }} />
+        <div className="team-grid" aria-busy="true">
+          {Array.from({ length: 30 }).map((_, i) => (
+            <div key={i} className="team-logo-card team-logo-card--skeleton">
+              <div className="skeleton" style={{ width: "3.5rem", height: "3.5rem", borderRadius: "var(--r)" }} />
+              <div className="skeleton" style={{ width: (50 + (i % 3) * 15) + "%", height: "0.7rem", borderRadius: "var(--r-sm)" }} />
             </div>
           ))}
         </div>
@@ -65,19 +121,16 @@ export default function TeamBrowser() {
       )}
 
       {!loading && !error && teams.length > 0 && (
-        <div className="set-list" role="list">
+        <div className="team-grid">
           {teams.map((t) => (
             <Link
               key={t.team}
               to={"/teams/" + encodeURIComponent(t.team)}
-              className="set-row"
-              role="listitem"
+              className="team-logo-card"
             >
-              <span className="browse-abbr">{teamAbbr(t.team)}</span>
-              <div className="set-row-body">
-                <span className="set-name">{t.team}</span>
-              </div>
-              <span className="set-count">{t.card_count.toLocaleString()} cards</span>
+              <TeamLogoImg team={t.team} />
+              <span className="team-logo-name">{t.team}</span>
+              <span className="team-logo-count">{t.card_count.toLocaleString()}</span>
             </Link>
           ))}
         </div>

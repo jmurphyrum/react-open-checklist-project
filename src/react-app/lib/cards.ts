@@ -50,6 +50,19 @@ export function teamAbbr(team: string): string {
   return TEAM_ABBR[team] ?? team.slice(0, 3).toUpperCase();
 }
 
+const ESPN_ABBR_OVERRIDE: Record<string, string | null> = {
+  "CWS": "chw", "WSH": "was",
+  "BRK": null, "CAL": null, "FLA": null, "MLW": null, "MON": null, "NYG": null,
+};
+
+export function teamLogoUrl(team: string): string | null {
+  const abbr = TEAM_ABBR[team];
+  if (!abbr) return null;
+  const override = ESPN_ABBR_OVERRIDE[abbr];
+  if (override === null) return null;
+  return `https://a.espncdn.com/i/teamlogos/mlb/500/${override ?? abbr.toLowerCase()}.png`;
+}
+
 export interface Subject {
   name: string;
   team?: string;
