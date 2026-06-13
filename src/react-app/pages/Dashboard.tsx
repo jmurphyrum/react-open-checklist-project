@@ -8,6 +8,8 @@ interface SetRecord {
   sport?: string;
   genre?: string;
   card_count?: number;
+  known_prints?: number;
+  unlimited_count?: number;
   years?: number[];
 }
 
@@ -147,6 +149,7 @@ export default function Dashboard() {
                 <th>Sport</th>
                 <th>Genre</th>
                 <th className="r">Cards</th>
+                <th className="r">Known Prints</th>
                 <th>Set ID</th>
                 <th style={{ width: 80 }} />
               </tr>
@@ -179,6 +182,9 @@ export default function Dashboard() {
                     <td className="td-dim">{set.genre || '—'}</td>
                     <td className="td-m r" style={{ textAlign: 'right' }}>
                       {fmt(set.card_count)}
+                    </td>
+                    <td className="td-m r" style={{ textAlign: 'right', color: set.known_prints ? 'var(--c-text-2)' : 'var(--c-text-3)' }}>
+                      {set.known_prints ? fmt(set.known_prints) : '—'}
                     </td>
                     <td
                       className="td-m"

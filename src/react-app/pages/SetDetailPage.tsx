@@ -105,17 +105,28 @@ export default function SetDetailPage() {
 
   const rcCount    = cards.filter(c => c.rookie_card).length;
   const autoCount  = cards.filter(c => c.autograph).length;
-  const relicCount = cards.filter(c => c.relic).length;
+
+  // Total known physical copies: sum print_run for every serial-numbered design.
+  // Unlimited (non-serial) cards have an unknown print quantity and are counted separately.
+  const serialCards    = cards.filter(c => c.serial_numbered && c.print_run != null);
+  const knownPrints    = serialCards.reduce((sum, c) => sum + (c.print_run ?? 0), 0);
+  const unlimitedCount = cards.filter(c => !c.serial_numbered).length;
 
   const kpis = [
     {
       label: 'Cards',
       value: cards.length.toLocaleString(),
-      sub: 'in checklist',
+      sub: 'unique designs in checklist',
     },
-    { label: 'Rookie Cards', value: loading ? '—' : rcCount,   sub: 'across set' },
-    { label: 'Autographs',   value: loading ? '—' : autoCount, sub: 'signed cards' },
-    { label: 'Relics',       value: loading ? '—' : relicCount, sub: 'memorabilia' },
+    { label: 'Rookie Cards', value: loading ? '—' : rcCount,    sub: 'across set' },
+    { label: 'Autographs',   value: loading ? '—' : autoCount,  sub: 'signed cards' },
+    {
+      label: 'Known Prints',
+      value: loading ? '—' : knownPrints.toLocaleString(),
+      sub: loading
+        ? ''
+        : `${serialCards.length.toLocaleString()} serial · ${unlimitedCount.toLocaleString()} unlimited`,
+    },
   ];
 
   if (loading) {
@@ -125,7 +136,7 @@ export default function SetDetailPage() {
           { label: 'Cards', value: '—' },
           { label: 'Rookie Cards', value: '—' },
           { label: 'Autographs', value: '—' },
-          { label: 'Relics', value: '—' },
+          { label: 'Known Prints', value: '—' },
         ]} />
         <div className="page-header">
           <div className="page-breadcrumb">

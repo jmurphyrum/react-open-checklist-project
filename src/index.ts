@@ -30,7 +30,9 @@ app.get("/api/sets", async (c) => {
       s.parallel, s.insert_set, s.autograph, s.relic, s.base_set, s.series,
       s.series_number, s.release_date, s.manufacturer, s.print_run, s.subset,
       s.description, s.image_url, s.metadata, s.created_at, s.updated_at,
-      COUNT(c.uuid) as card_count
+      COUNT(c.uuid) as card_count,
+      SUM(CASE WHEN c.serial_numbered = 1 AND c.print_run IS NOT NULL THEN c.print_run ELSE 0 END) as known_prints,
+      SUM(CASE WHEN c.serial_numbered = 0 THEN 1 ELSE 0 END) as unlimited_count
     FROM sets s
     LEFT JOIN cards c ON c.set_id = s.set_id
     WHERE 1=1
