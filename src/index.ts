@@ -24,27 +24,37 @@ app.get("/api", (c) =>
 app.get("/api/sets", async (c) => {
   const { genre, sport, category, search, limit = "50", offset = "0" } = c.req.query();
 
-  let sql = "SELECT * FROM sets WHERE 1=1";
+  let sql = `
+    SELECT
+      s.uuid, s.set_id, s.name, s.genre, s.category, s.sports, s.season, s.years,
+      s.parallel, s.insert_set, s.autograph, s.relic, s.base_set, s.series,
+      s.series_number, s.release_date, s.manufacturer, s.print_run, s.subset,
+      s.description, s.image_url, s.metadata, s.created_at, s.updated_at,
+      COUNT(c.uuid) as card_count
+    FROM sets s
+    LEFT JOIN cards c ON c.set_id = s.set_id
+    WHERE 1=1
+  `;
   const params: (string | number)[] = [];
 
   if (genre) {
-    sql += " AND genre = ?";
+    sql += " AND s.genre = ?";
     params.push(genre);
   }
   if (sport) {
-    sql += " AND EXISTS (SELECT 1 FROM json_each(sports) WHERE value = ?)";
+    sql += " AND EXISTS (SELECT 1 FROM json_each(s.sports) WHERE value = ?)";
     params.push(sport);
   }
   if (category) {
-    sql += " AND EXISTS (SELECT 1 FROM json_each(category) WHERE value = ?)";
+    sql += " AND EXISTS (SELECT 1 FROM json_each(s.category) WHERE value = ?)";
     params.push(category);
   }
   if (search) {
-    sql += " AND (name LIKE ? OR set_id LIKE ?)";
+    sql += " AND (s.name LIKE ? OR s.set_id LIKE ?)";
     params.push(`%${search}%`, `%${search}%`);
   }
 
-  sql += " ORDER BY release_date DESC LIMIT ? OFFSET ?";
+  sql += " GROUP BY s.set_id ORDER BY s.release_date DESC LIMIT ? OFFSET ?";
   params.push(parseInt(limit), parseInt(offset));
 
   const { results } = await c.env.DB.prepare(sql).bind(...params).all();

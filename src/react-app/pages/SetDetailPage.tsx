@@ -110,7 +110,7 @@ export default function SetDetailPage() {
   const kpis = [
     {
       label: 'Cards',
-      value: (data?.card_count ?? cards.length).toLocaleString(),
+      value: cards.length.toLocaleString(),
       sub: 'in checklist',
     },
     { label: 'Rookie Cards', value: loading ? '—' : rcCount,   sub: 'across set' },
