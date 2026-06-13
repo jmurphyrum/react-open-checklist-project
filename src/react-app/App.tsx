@@ -1,53 +1,29 @@
-import { BrowserRouter, NavLink, Route, Routes } from "react-router-dom";
-import CardDetail from "./components/CardDetail";
-import PlayerBrowser from "./components/PlayerBrowser";
-import PlayerDetail from "./components/PlayerDetail";
-import SetBrowser from "./components/SetBrowser";
-import SetDetail from "./components/SetDetail";
-import TeamBrowser from "./components/TeamBrowser";
-import TeamDetail from "./components/TeamDetail";
-import Validator from "./components/Validator";
-
-function CheckIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="currentColor" strokeWidth="1.5"/>
-      <path d="M4.5 8l2.5 2.5L11.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-  );
-}
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import Shell from './layout/Shell';
+import Dashboard from './pages/Dashboard';
+import SetDetailPage from './pages/SetDetailPage';
+import CardDetailPage from './pages/CardDetailPage';
+import ValidatePage from './pages/ValidatePage';
+import PlayerBrowser from './components/PlayerBrowser';
+import PlayerDetail from './components/PlayerDetail';
+import TeamBrowser from './components/TeamBrowser';
+import TeamDetail from './components/TeamDetail';
 
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="app-shell">
-        <header className="nav">
-          <div className="nav-inner">
-            <NavLink to="/" className="nav-brand">
-              <CheckIcon />
-              Open Checklist
-            </NavLink>
-            <nav className="nav-links" aria-label="Main navigation">
-              <NavLink to="/" end className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Sets</NavLink>
-              <NavLink to="/players" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Players</NavLink>
-              <NavLink to="/teams" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Teams</NavLink>
-              <NavLink to="/validate" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>Validator</NavLink>
-            </nav>
-          </div>
-        </header>
-        <main className="main-content">
-          <Routes>
-            <Route path="/" element={<SetBrowser />} />
-            <Route path="/sets/:set_id" element={<SetDetail />} />
-            <Route path="/players" element={<PlayerBrowser />} />
-            <Route path="/players/:name" element={<PlayerDetail />} />
-            <Route path="/teams" element={<TeamBrowser />} />
-            <Route path="/teams/:name" element={<TeamDetail />} />
-            <Route path="/cards/:uuid" element={<CardDetail />} />
-            <Route path="/validate" element={<Validator />} />
-          </Routes>
-        </main>
-      </div>
+      <Shell>
+        <Routes>
+          <Route path="/"              element={<Dashboard />} />
+          <Route path="/sets/:set_id"  element={<SetDetailPage />} />
+          <Route path="/cards/:uuid"   element={<CardDetailPage />} />
+          <Route path="/validate"      element={<ValidatePage />} />
+          <Route path="/players"       element={<div className="legacy-content"><PlayerBrowser /></div>} />
+          <Route path="/players/:name" element={<div className="legacy-content"><PlayerDetail /></div>} />
+          <Route path="/teams"         element={<div className="legacy-content"><TeamBrowser /></div>} />
+          <Route path="/teams/:name"   element={<div className="legacy-content"><TeamDetail /></div>} />
+        </Routes>
+      </Shell>
     </BrowserRouter>
   );
 }
